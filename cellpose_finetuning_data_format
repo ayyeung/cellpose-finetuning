@@ -1,0 +1,58 @@
+import numpy as np
+import json
+import io
+from PIL import Image
+import requests
+from tqdm import tqdm
+import glob
+
+file_names = glob.glob('*.npy')  # list of your .npy files
+final_data = []  # list to hold all data
+dict = {''}
+
+with open('N=5.json', 'r') as f:
+    data = json.load(f)
+
+# with open('/Users/ayyeung/Downloads/human_in_the_loop/train/img_0_seg.npy', 'r') as f:
+their_data = np.load('/Users/ayyeung/Downloads/human_in_the_loop/train/img_0_seg.npy', allow_pickle=True)
+their_data_dict = their_data.item()  # ['outlines', 'colors', 'masks', 'chan_choose', 'img', 'filename', 'flows', 'ismanual', 'manual_changes', 'model_path']
+    
+# for file_name in file_names:
+#     with open(file_name, 'r') as f:
+#         data.append(json.load(f))  # append each file's data to the list
+
+for i in tqdm(range(len(data))):
+    img = requests.get(data[i]['data_row.row_data'])
+    image = Image.open(io.BytesIO(img.content))
+    image = np.array(image) 
+
+      # If the image is RGB, convert to grayscale
+    if len(image[2]) == 3 or len(image[2] == 4):
+        r, g, b = image[:,:,0], image[:,:,1], image[:,:,2]
+        grayscale = 0.2989 * r + 0.5870 * g + 0.1140 * b
+
+    greyscale_img = grayscale.astype(np.uint8)
+
+    num_masks = len(data[i]['projects.clim82h1j07uk07y3b1dsdiuq.labels'][0]['annotations']['objects'])
+
+    for n in tqdm(range(num_masks)):
+        filepath_seg = 'img_' + str(i) + '_seg.npy'
+        arr = np.load(filepath_seg, allow_pickle=True)
+        dict = their_data_dict
+        length = len(data[i]['projects.clim82h1j07uk07y3b1dsdiuq.labels'][0]['annotations']['objects']) # replace with your variable
+        values = np.full((length,), True)  # Create an array with `True` repeated `length` times
+        dict_obj = {'ismanual': values}  # Create the dictionary
+        array_obj = np.array([dict_obj]) # Cast the dictionary in a numpy array
+
+        dict['masks'] = arr
+        dict['outlines'] = their_data_dict['outlines']
+        dict['chan_choose'] = their_data_dict['chan_choose']
+        dict['img'] = greyscale_img
+        dict['flows'] = their_data_dict['flows']
+        dict['ismanual'] = array_obj
+        dict['colors'] = their_data_dict['colors'][:num_masks]
+        dict['manual_changes'] = their_data_dict['manual_changes']
+        dict['model_path'] = their_data_dict['model_path']
+        dict['filename'] = '/content/gdrive/MyDrive/cs231n/Final Project/Image Dataset/img_' + str(i) + '_seg.tif'
+        np.save('img_' + str(i) + '_seg.npy', dict)
+        
