@@ -1,0 +1,37 @@
+# import numpy as np
+# import json
+# import io
+# from PIL import Image
+# import requests
+# from tqdm import tqdm
+
+# with open('N=5.json', 'r') as f:
+#     data = json.load(f)
+
+# LB_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbGhteTloeGgwMG0zMDc0Z2JuN2QwazhxIiwib3JnYW5pemF0aW9uSWQiOiJjbGhteTloeDQwMG0yMDc0ZzRwdXFhN296IiwiYXBpS2V5SWQiOiJjbGlteGFqZmgwMWRlMDcwNDl6NjczenFuIiwic2VjcmV0IjoiNTFjMmFiZGQ3NzAwOTBiNzQyMWI3NjhjZWI3YWM1MjQiLCJpYXQiOjE2ODYyMTU3MDMsImV4cCI6MjMxNzM2NzcwM30.c_Cxgs4oyc15Q8jzE3WOlB1XCjKQ5yHVCzUYY_SCQz0'
+# headers = {"Authorization": f"Bearer " + LB_API_KEY}
+
+# for i in tqdm(range(4, len(data))):
+#     img = requests.get(data[i]['data_row.row_data'])
+#     image = Image.open(io.BytesIO(img.content))
+#     image = np.array(image) 
+#     final_mask = np.zeros((1200, 1920, 4), dtype=np.uint8)
+
+#     num_masks = len(data[i]['projects.clim82h1j07uk07y3b1dsdiuq.labels'][0]['annotations']['objects'])
+
+#     for n in tqdm(range(num_masks)):
+#         # print(data[i]['projects.clim82h1j07uk07y3b1dsdiuq.labels'][0]['annotations']['objects'][n]['mask']['url'])
+#         mask = requests.get(data[i]['projects.clim82h1j07uk07y3b1dsdiuq.labels'][0]['annotations']['objects'][n]['mask']['url'], headers=headers)
+#         temp_mask = Image.open(io.BytesIO(mask.content))
+#         temp_mask = np.array(temp_mask)
+#         ones_mask = np.where(temp_mask != 0, 1, temp_mask)
+#         final_mask += (n+1) * ones_mask     # this line effectively creates instances of each individual object
+
+#     filepath_seg = 'img_' + str(i) + '_seg.npy'
+#     np.save(filepath_seg, final_mask)
+
+
+import numpy as np
+arr = np.load("/Users/ayyeung/Downloads/human_in_the_loop/test/img_1213_seg.npy", allow_pickle=True)
+dic = arr.item()
+print(dic['masks'])
